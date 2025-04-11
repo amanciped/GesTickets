@@ -26,3 +26,5 @@ public class SolicitudControlador {
         return servicio.listar();
     }
 }
+
+//carga hacia hu001
