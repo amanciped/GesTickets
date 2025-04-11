@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Solicitud</title>
+</head>
+<body>
+<h1>Crear Solicitud de Soporte</h1>
+<form id="solicitudForm">
+    <label>Título:</label><br>
+    <input type="text" id="titulo" required><br><br>
+
+    <label>Descripción:</label><br>
+    <textarea id="descripcion" required></textarea><br><br>
+
+    <label>Prioridad:</label><br>
+    <select id="prioridad">
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+    </select><br><br>
+
+    <label>Estado:</label><br>
+    <select id="estado">
+        <option value="Pendiente">Pendiente</option>
+        <option value="En Proceso">En Proceso</option>
+        <option value="Resuelto">Resuelto</option>
+    </select><br><br>
+
+    <button type="submit">Enviar</button>
+</form>
+
+<script>
+    document.getElementById('solicitudForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const data = {
+        titulo: document.getElementById('titulo').value,
+        descripcion: document.getElementById('descripcion').value,
+        prioridad: document.getElementById('prioridad').value,
+        estado: document.getElementById('estado').value
+      };
+
+      fetch('http://localhost:8081/solicitudes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(res => alert("Solicitud enviada con éxito"))
+      .catch(err => alert("Error al enviar solicitud"));
+    });
+</script>
+</body>
+</html>
