@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Solicitud</title>
+</head>
+<body>
+<h1>Crear Nueva Solicitud</h1>
+
+<form th:action="@{/solicitudes/crear}" th:object="${solicitud}" method="post">
+
+    <label for="titulo">Título:</label>
+    <input type="text" id="titulo" th:field="*{titulo}" required />
+    <br/><br/>
+
+    <label for="descripcion">Descripción:</label>
+    <textarea id="descripcion" th:field="*{descripcion}" rows="4" cols="50" required></textarea>
+    <br/><br/>
+
+    <label for="prioridad">Prioridad:</label>
+    <select id="prioridad" th:field="*{prioridad}">
+        <option value="ALTA">Alta</option>
+        <option value="MEDIA">Media</option>
+        <option value="BAJA">Baja</option>
+    </select>
+    <br/><br/>
+
+    <label for="estado">Estado:</label>
+    <select id="estado" th:field="*{estado}">
+        <option value="ABIERTA">Abierta</option>
+        <option value="EN_PROCESO">En Proceso</option>
+        <option value="CERRADA">Cerrada</option>
+    </select>
+    <br/><br/>
+
+    <button type="submit">Guardar Solicitud</button>
+</form>
+
+<br/>
+<a th:href="@{/solicitudes}">Volver a la lista</a>
+</body>
+</html>
+
