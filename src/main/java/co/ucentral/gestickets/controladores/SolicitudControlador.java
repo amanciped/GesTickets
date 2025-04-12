@@ -76,4 +76,9 @@ public class SolicitudControlador {
         solicitudRepositorio.save(solicitud);
         return "redirect:/solicitudes/ver";
     }
+    @GetMapping("/eliminar/{id}")
+    public String eliminarSolicitud(@PathVariable Long id) {
+        solicitudRepositorio.deleteById(id);
+        return "redirect:/solicitudes/ver";
+    }
 }
