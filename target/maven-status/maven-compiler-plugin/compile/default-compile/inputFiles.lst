@@ -1,6 +1,14 @@
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\controladores\SolicitudControlador.java
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\GesticketsApplication.java
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\InicioController.java
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\persistencia\entidades\Solicitud.java
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\persistencia\repositorios\SolicitudRepositorio.java
-C:\apl\gestickets\src\main\java\co\ucentral\gestickets\servicios\SolicitudServicio.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\controladores\SolicitudControlador.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\controladores\TicketControlador.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\controladores\UsuarioControlador.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\dto\UsuarioDto.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\GesticketsApplication.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\InicioController.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\persistencia\entidades\Solicitud.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\persistencia\entidades\Usuario.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\persistencia\repositorios\SolicitudRepositorio.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\persistencia\repositorios\UsuarioRepositorio.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\seguridad\SeguridadConfig.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\servicios\SolicitudServicio.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\servicios\UsuarioDetallesServicio.java
+C:\apl\gestickets VERSION CON PRUEBAS HECHAS\gestickets\src\main\java\co\ucentral\gestickets\servicios\UsuarioServicio.java

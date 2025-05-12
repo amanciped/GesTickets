@@ -1,6 +1,8 @@
-co\ucentral\gestickets\InicioController.class
-co\ucentral\gestickets\servicios\SolicitudServicio.class
+co\ucentral\gestickets\controladores\TicketControlador.class
 co\ucentral\gestickets\GesticketsApplication.class
-co\ucentral\gestickets\controladores\SolicitudControlador.class
 co\ucentral\gestickets\persistencia\entidades\Solicitud.class
 co\ucentral\gestickets\persistencia\repositorios\SolicitudRepositorio.class
+co\ucentral\gestickets\InicioController.class
+co\ucentral\gestickets\servicios\SolicitudServicio.class
+co\ucentral\gestickets\controladores\SolicitudControlador.class
+co\ucentral\gestickets\controladores\UsuarioControlador.class

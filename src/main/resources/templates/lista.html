@@ -2,16 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Solicitudes</title>
+    <title>Lista de Tickets</title>
 </head>
 <body>
-<h1>Solicitudes</h1>
+<h1>Tickets</h1>
 
 <table border="1">
     <tr>
         <th>ID</th>
         <th>Título</th>
         <th>Descripción</th>
+        <th>Categoría</th>
         <th>Prioridad</th>
         <th>Estado</th>
         <th>Acciones</th>
@@ -20,17 +21,18 @@
         <td th:text="${solicitud.id}">ID</td>
         <td th:text="${solicitud.titulo}">Título</td>
         <td th:text="${solicitud.descripcion}">Descripción</td>
+        <td th:text="${solicitud.categoria}">Categoría</td>
         <td th:text="${solicitud.prioridad}">Prioridad</td>
         <td th:text="${solicitud.estado}">Estado</td>
         <td>
-            <a th:href="@{'/solicitudes/editar/' + ${solicitud.id}}">Editar</a>
+            <a th:href="@{/solicitudes/editar/{id}(id=${solicitud.id})}">Editar</a>
             |
-            <a th:href="@{'/solicitudes/eliminar/' + ${solicitud.id}}" onclick="return confirm('¿Estás seguro de eliminar esta solicitud?');">Eliminar</a>
+            <a th:href="@{'/solicitudes/eliminar/' + ${solicitud.id}}" onclick="return confirm('¿Estás seguro de eliminar este ticket?');">Eliminar</a>
         </td>
     </tr>
 </table>
 
-<a href="/solicitudes/formulario">Crear nueva solicitud</a>
+<a href="/solicitudes/formulario">Crear nuevo ticket</a>
 </body>
 </html>
 

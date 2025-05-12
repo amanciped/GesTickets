@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Página de Inicio</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        .container {
+            background-color: white;
+            width: 400px;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        a.button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #2d89ef;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        a.button:hover {
+            background-color: #1e5db8;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>¡Bienvenido a Gestickets!</h1>
+    <p>Has iniciado sesión correctamente.</p>
+
+    <a href="/logout" class="button">Cerrar sesión</a>
+</div>
+</body>
+</html>
