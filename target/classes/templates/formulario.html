@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Nuevo Ticket</title>
+</head>
+<body>
+<h1 th:text="${solicitud.id != null} ? 'Editar Ticket' : 'Crear Nuevo Ticket'"></h1>
+
+<form th:action="${solicitud.id != null} ? @{/solicitudes/actualizar/{id}(id=${solicitud.id})} : @{/solicitudes}"
+      th:object="${solicitud}" method="post">
+
+    <input type="hidden" th:field="*{id}" />
+
+    <label>Título:</label>
+    <input type="text" th:field="*{titulo}" required><br><br>
+
+    <label>Descripción:</label>
+    <textarea th:field="*{descripcion}" required></textarea><br><br>
+
+    <label>Categoría:</label>
+    <select th:field="*{categoria}" required>
+        <option value="Software">Software</option>
+        <option value="Hardware">Hardware</option>
+    </select><br><br>
+
+    <button type="submit" th:text="${solicitud.id != null} ? 'Actualizar' : 'Guardar'"></button>
+</form>
+
+</body>
+</html>
