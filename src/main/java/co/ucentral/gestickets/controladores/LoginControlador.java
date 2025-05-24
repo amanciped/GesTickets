@@ -12,6 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/login")
@@ -34,7 +37,6 @@ public class LoginControlador {
         Usuario usuario = usuarioServicio.autenticar(dto.getUsername(), dto.getPassword());
 
         if (usuario != null) {
-            //Aquí se guarda el usuario en sesión (incluyendo el rol)
             session.setAttribute("usuarioLogueado", usuario);
             return "redirect:/solicitudes/ver";
         } else {
@@ -65,7 +67,7 @@ public class LoginControlador {
         return "redirect:/login";
     }
 
-    // Registrar desde Postman (JSON)
+    // ✅ Registrar desde Postman o Flutter
     @PostMapping("/api/registro")
     @ResponseBody
     public ResponseEntity<String> registrarUsuarioDesdePostman(@RequestBody Usuario usuario) {
@@ -74,15 +76,17 @@ public class LoginControlador {
         return ResponseEntity.ok("Usuario registrado correctamente.");
     }
 
-    // Autenticar desde Postman (JSON)
+    // ✅ Autenticar desde Flutter (devuelve el username como token)
     @PostMapping("/api/autenticar")
     @ResponseBody
-    public ResponseEntity<String> autenticarUsuarioDesdePostman(@RequestBody UsuarioDto dto, HttpSession session) {
+    public ResponseEntity<?> autenticarUsuarioDesdePostman(@RequestBody UsuarioDto dto) {
         Usuario usuario = usuarioServicio.autenticar(dto.getUsername(), dto.getPassword());
 
         if (usuario != null) {
-            session.setAttribute("usuarioLogueado", usuario);  // guardar usuario en sesión
-            return ResponseEntity.ok("Autenticación exitosa");
+            Map<String, Object> response = new HashMap<>();
+            response.put("username", usuario.getUsername());
+            response.put("rol", usuario.getRol().name());
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body("Credenciales inválidas");
         }

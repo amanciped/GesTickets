@@ -1,7 +1,8 @@
 package co.ucentral.gestickets.persistencia.entidades;
 
 import co.ucentral.gestickets.enums.Categoria;
-import co.ucentral.gestickets.persistencia.entidades.EstadoTicket;
+import co.ucentral.gestickets.enums.EstadoTicket;
+import co.ucentral.gestickets.enums.Prioridad;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +19,11 @@ public class Ticket {
 
     private String titulo;
     private String descripcion;
-    private String prioridad;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Prioridad prioridad;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
