@@ -1,168 +1,198 @@
 package co.ucentral.gestickets.controladores;
 
-import co.ucentral.gestickets.persistencia.entidades.Usuario;
+import co.ucentral.gestickets.enums.EstadoTicket;
+import co.ucentral.gestickets.enums.Prioridad;
+import co.ucentral.gestickets.persistencia.entidades.Comentario;
 import co.ucentral.gestickets.persistencia.entidades.Ticket;
+import co.ucentral.gestickets.persistencia.entidades.Usuario;
 import co.ucentral.gestickets.persistencia.repositorios.TicketRepositorio;
+import co.ucentral.gestickets.persistencia.repositorios.UsuarioRepositorio;
 import co.ucentral.gestickets.servicios.TicketServicio;
-import co.ucentral.gestickets.dto.TicketDto;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import co.ucentral.gestickets.persistencia.entidades.EstadoTicket;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/tickets")
+@RequiredArgsConstructor
 public class TicketControlador {
 
-    @Autowired
-    private TicketRepositorio ticketRepositorio;
+    private final TicketRepositorio ticketRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
+    private final ComentarioRepositorio comentarioRepositorio;
+    private final TicketServicio ticketServicio;
 
-    @Autowired
-    private TicketServicio ticketServicio;
+    private Optional<Usuario> getUsuarioDesdeToken(String token) {
+        String username = token.replace("Bearer", "").trim();
+        return usuarioRepositorio.findByUsername(username);
+    }
 
-    // Ruta para crear un ticket
     @PostMapping("/create")
-    public Ticket crearTicket(@RequestBody TicketDto ticketDto, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
-        if (usuario == null) {
-            throw new RuntimeException("Debes iniciar sesión.");
-        }
+    public ResponseEntity<?> crearTicket(@RequestBody TicketDto ticketDto, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("Usuario no autenticado.");
 
         Ticket ticket = new Ticket();
         ticket.setTitulo(ticketDto.getTitulo());
         ticket.setDescripcion(ticketDto.getDescripcion());
-        ticket.setCategoria(ticketDto.getCategoria());  // Esto debería funcionar si el DTO está correcto
-        ticket.setEstado(EstadoTicket.ABIERTO);  // Estado por defecto
-        ticket.setCreador(usuario);  // Establecer el creador
+        ticket.setCategoria(ticketDto.getCategoria());
+        ticket.setEstado(EstadoTicket.ABIERTO);//valor predeterminado
+        ticket.setPrioridad(Prioridad.MEDIA);//valor predeterminado
+        ticket.setCreador(usuarioOpt.get());
 
-        return ticketRepositorio.save(ticket);
+        return ResponseEntity.ok(ticketRepositorio.save(ticket));
     }
 
-    // Ruta para editar un ticket (solo lo puede hacer el creador)
+    @GetMapping("/by-usuario")
+    public ResponseEntity<?> ticketsPorUsuario(@RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("Usuario no autenticado.");
+
+        return ResponseEntity.ok(ticketRepositorio.findByCreador(usuarioOpt.get()));
+    }
+
+    @PostMapping("/comentario/{ticketId}")
+    public ResponseEntity<?> agregarComentario(@PathVariable Long ticketId, @RequestBody ComentarioDto comentarioDto, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(ticketId);
+
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("Usuario no autenticado.");
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado.");
+
+        Comentario comentario = Comentario.builder()
+                .contenido(comentarioDto.getContenido())
+                .autor(usuarioOpt.get())
+                .ticket(ticketOpt.get())
+                .build();
+
+        comentario.setFecha(LocalDateTime.now());
+
+
+        return ResponseEntity.ok(comentarioRepositorio.save(comentario));
+    }
+
+    @GetMapping("/comentario/{ticketId}")
+    public ResponseEntity<?> verComentarios(@PathVariable Long ticketId) {
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(ticketId);
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado.");
+
+        return ResponseEntity.ok(comentarioRepositorio.findByTicket(ticketOpt.get()));
+    }
+
     @PutMapping("/edit/{id}")
-    public Object editarTicket(@PathVariable Long id, @RequestBody TicketDto ticketDto, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+    public ResponseEntity<?> editarTicket(@PathVariable Long id, @RequestBody TicketDto ticketDto, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
 
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
-        }
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(id);
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado");
 
-        Optional<Ticket> ticketOptional = ticketRepositorio.findById(id);
-        if (ticketOptional.isEmpty()) {
-            return "El ticket no existe.";
-        }
+        Ticket ticket = ticketOpt.get();
+        if (!ticket.getCreador().getId().equals(usuarioOpt.get().getId()))
+            return ResponseEntity.status(403).body("No puedes editar este ticket");
 
-        Ticket ticketExistente = ticketOptional.get();
+        ticket.setTitulo(ticketDto.getTitulo());
+        ticket.setDescripcion(ticketDto.getDescripcion());
+        ticket.setCategoria(ticketDto.getCategoria());
 
-        // Verificar que el usuario que está haciendo la modificación es el creador
-        if (!ticketExistente.getCreador().getId().equals(usuario.getId())) {
-            return "No puedes modificar un ticket que no creaste.";
-        }
-
-        // Actualizar los campos permitidos
-        ticketExistente.setTitulo(ticketDto.getTitulo());
-        ticketExistente.setDescripcion(ticketDto.getDescripcion());
-        ticketExistente.setCategoria(ticketDto.getCategoria());
-
-        return ticketRepositorio.save(ticketExistente);
+        return ResponseEntity.ok(ticketRepositorio.save(ticket));
     }
 
-    // Ruta para ver todos los tickets creados por el usuario
-    @GetMapping("/created-by-me")
-    public Object verTicketsCreados(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
-        }
-
-        // Obtener los tickets creados por el usuario
-        return ticketRepositorio.findByCreador(usuario);
-    }
-
-    // Ruta para ver todos los tickets asignados a un gestor
-    @GetMapping("/my")
-    public Object verMisTickets(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
-        }
-
-        // Solo los gestores pueden ver sus tickets asignados
-        if (usuario.getRol() != Usuario.Rol.GESTOR) {
-            return "Acceso denegado. Solo los GESTORES pueden ver sus tickets.";
-        }
-
-        return ticketRepositorio.findByGestorAsignado(usuario);
-    }
-
-    // Ruta para asignar un ticket a un gestor
-    @PostMapping("/assign/{id}")
-    public Object asignarTicket(@PathVariable Long id, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
-        }
-
-        // Verificar que solo los gestores pueden asignarse tickets
-        if (usuario.getRol() != Usuario.Rol.GESTOR) {
-            return "Acceso denegado. Solo los GESTORES pueden asignarse tickets.";
-        }
-
-        // Asignar ticket usando el servicio
-        Optional<Ticket> asignada = ticketServicio.asignarSolicitud(id, usuario);
-
-        if (asignada.isPresent()) {
-            return "Ticket asignado correctamente.";
-        } else {
-            return "El ticket ya fue asignado o no existe.";
-        }
-    }
-
-    // Ruta para ver todos los tickets (solo accesible para gestores)
-    @GetMapping("/all")
-    public Object verTodosLosTickets(HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
-
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
-        }
-
-        // Solo los gestores pueden ver todos los tickets
-        if (usuario.getRol() != Usuario.Rol.GESTOR) {
-            return "Acceso denegado. Solo los GESTORES pueden ver todos los tickets.";
-        }
-
-        List<Ticket> tickets = ticketRepositorio.findAll();
-        return tickets;
-    }
     @DeleteMapping("/delete/{id}")
-    public Object eliminarTicket(@PathVariable Long id, HttpSession session) {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
+    @Transactional
+    public ResponseEntity<?> eliminarTicket(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
 
-        if (usuario == null) {
-            return "Debes iniciar sesión.";
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(id);
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado");
+
+        Ticket ticket = ticketOpt.get();
+        if (!ticket.getCreador().getId().equals(usuarioOpt.get().getId()))
+            return ResponseEntity.status(403).body("No puedes eliminar este ticket");
+
+        comentarioRepositorio.deleteByTicket(ticket); // primero los comentarios
+        ticketRepositorio.delete(ticket);             //  luego el ticket
+
+        return ResponseEntity.ok("Eliminado");
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<?> verMisTicketsAsignados(@RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
+
+        Usuario usuario = usuarioOpt.get();
+        if (usuario.getRol() != Usuario.Rol.GESTOR)
+            return ResponseEntity.status(403).body("Solo los GESTORES pueden ver esta información");
+
+        return ResponseEntity.ok(ticketRepositorio.findByGestorAsignado(usuario));
+    }
+
+    @PostMapping("/assign/{id}")
+    public ResponseEntity<?> asignarTicket(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
+
+        Usuario usuario = usuarioOpt.get();
+        if (usuario.getRol() != Usuario.Rol.GESTOR)
+            return ResponseEntity.status(403).body("Solo los GESTORES pueden asignarse tickets");
+
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(id);
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado");
+
+        Ticket ticket = ticketOpt.get();
+
+        if (ticket.getGestorAsignado() != null) {
+            return ResponseEntity.status(400).body("El ticket ya fue asignado a otro gestor");
         }
 
-        Optional<Ticket> ticketOptional = ticketRepositorio.findById(id);
-        if (ticketOptional.isEmpty()) {
-            return "El ticket no existe.";
+        ticket.setGestorAsignado(usuario);
+
+        // Solo cambia el estado si aún no fue definido por el gestor en frontend
+        if (ticket.getEstado() == EstadoTicket.ABIERTO) {
+            ticket.setEstado(EstadoTicket.EN_ESPERA);
         }
 
-        Ticket ticket = ticketOptional.get();
+        ticketRepositorio.save(ticket);
+        return ResponseEntity.ok("Ticket asignado correctamente");
+    }
 
-        // Verificar que el usuario es el creador del ticket
-        if (!ticket.getCreador().getId().equals(usuario.getId())) {
-            return "No puedes eliminar un ticket que no creaste.";
-        }
+    @GetMapping("/all")
+    public ResponseEntity<?> verTodos(@RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
 
-        ticketRepositorio.delete(ticket);
-        return "Ticket eliminado correctamente.";
+        Usuario usuario = usuarioOpt.get();
+        if (usuario.getRol() != Usuario.Rol.GESTOR)
+            return ResponseEntity.status(403).body("Solo GESTORES pueden ver todos los tickets");
+
+        return ResponseEntity.ok(ticketRepositorio.findAll());
+    }
+
+    @PutMapping("/gestor/update/{id}")
+    public ResponseEntity<?> actualizarTicketComoGestor(@PathVariable Long id, @RequestBody ActualizacionTicketDto dto, @RequestHeader("Authorization") String token) {
+        Optional<Usuario> usuarioOpt = getUsuarioDesdeToken(token);
+        if (usuarioOpt.isEmpty()) return ResponseEntity.status(401).body("No autenticado");
+
+        Usuario usuario = usuarioOpt.get();
+        if (usuario.getRol() != Usuario.Rol.GESTOR)
+            return ResponseEntity.status(403).body("Solo GESTORES pueden actualizar tickets");
+
+        Optional<Ticket> ticketOpt = ticketRepositorio.findById(id);
+        if (ticketOpt.isEmpty()) return ResponseEntity.status(404).body("Ticket no encontrado");
+
+        Ticket ticket = ticketOpt.get();
+        if (ticket.getGestorAsignado() == null || !ticket.getGestorAsignado().getId().equals(usuario.getId()))
+            return ResponseEntity.status(403).body("No puedes modificar un ticket no asignado a ti");
+
+        ticket.setEstado(dto.getEstado());
+        ticket.setPrioridad(dto.getPrioridad());
+
+        return ResponseEntity.ok(ticketRepositorio.save(ticket));
     }
 }

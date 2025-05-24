@@ -1,4 +1,4 @@
-package co.ucentral.gestickets.persistencia.entidades;
+package co.ucentral.gestickets.enums;
 
 public enum EstadoTicket {
     ABIERTO,
