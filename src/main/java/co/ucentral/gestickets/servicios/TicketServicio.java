@@ -3,7 +3,7 @@ package co.ucentral.gestickets.servicios;
 import co.ucentral.gestickets.persistencia.entidades.Ticket;
 import co.ucentral.gestickets.persistencia.entidades.Usuario;
 import co.ucentral.gestickets.persistencia.repositorios.TicketRepositorio;
-import co.ucentral.gestickets.persistencia.entidades.EstadoTicket;
+import co.ucentral.gestickets.enums.EstadoTicket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,14 +27,23 @@ public class TicketServicio {
     public Optional<Ticket> asignarSolicitud(Long solicitudId, Usuario gestor) {
         Optional<Ticket> solicitudOpt = repositorio.findById(solicitudId);
 
-        if (solicitudOpt.isPresent()) {
-            Ticket solicitud = solicitudOpt.get();
-            if (solicitud.getGestorAsignado() == null) {
-                solicitud.setGestorAsignado(gestor);
-                solicitud.setEstado(EstadoTicket.EN_ESPERA);
-                return Optional.of(repositorio.save(solicitud));
-            }
+        if (solicitudOpt.isEmpty()) {
+            return Optional.empty(); // No existe
         }
-        return Optional.empty(); // Ya fue asignado o no existe
+
+        Ticket solicitud = solicitudOpt.get();
+
+        if (solicitud.getGestorAsignado() != null) {
+            return Optional.empty(); // Ya asignado
+        }
+
+        solicitud.setGestorAsignado(gestor);
+
+        // Solo cambiar el estado si sigue en ABIERTO
+        if (solicitud.getEstado() == EstadoTicket.ABIERTO) {
+            solicitud.setEstado(EstadoTicket.EN_ESPERA);
+        }
+
+        return Optional.of(repositorio.save(solicitud));
     }
 }
